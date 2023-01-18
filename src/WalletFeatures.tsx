@@ -12,7 +12,10 @@ import {
 import {
   ContractCallInputType,
   InitializedUser,
+  PaperEmbeddedWalletSdk,
 } from "@paperxyz/embedded-wallet-service-sdk";
+
+import {ThirdwebSDK} from "@thirdweb-dev/sdk";
 import { ethers } from "ethers";
 import { useState } from "react";
 
@@ -101,8 +104,9 @@ export const WalletFeatures: React.FC<Props> = ({ user }) => {
   const callContractGasless = async () => {
     setLoading(Features.CALL_GASLESS_CONTRACT);
     const params = {
-      contractAddress: "0xb2369209b4eb1e76a43fAd914B1d29f6508c8aae",
-      methodArgs: [user?.walletAddress ?? "", 1, 0],
+      contractAddress: "0x051aafCC99A130b2497883509064A763EDe4d3c5", 
+                    // "0xb2369209b4eb1e76a43fAd914B1d29f6508c8aae",
+      methodArgs: [user?.walletAddress ?? "", 1, 1],
       methodInterface:
         "function claimTo(address _to, uint256 _tokeIt, uint256 _quantity) external",
     } as ContractCallInputType;
@@ -118,6 +122,66 @@ export const WalletFeatures: React.FC<Props> = ({ user }) => {
     } finally {
       setLoading(null);
     }
+  };
+
+  const mintThirdwebGasless = async () => {
+    const ERC721_CONTRACT = "0x051aafCC99A130b2497883509064A763EDe4d3c5";
+  
+    const PaperSdk = new PaperEmbeddedWalletSdk({
+      clientId: "1e74452f-6ea3-48d3-9bc0-a6e3e2cb5d20",
+      chain: "Goerli",
+    });
+
+    const initializedUser = await PaperSdk.initializeUser();
+    if (!initializedUser) {
+      throw new Error("User is not logged in!")
+    }
+    const signer = await initializedUser.wallet.getEthersJsSigner();
+    
+    // get thirdweb contract function argument
+    const thirdwebSDK = new ThirdwebSDK(signer);
+    const quantity = 1;
+  
+    try {
+      const contract = await thirdwebSDK.getContract(ERC721_CONTRACT);
+      const preparedClaims = await contract.erc721.claimConditions.prepareClaim(
+        quantity,
+        true
+      );
+      const args = await contract.erc721.claimConditions.getClaimArguments(
+        user!.walletAddress,
+        quantity,
+        preparedClaims
+      );
+      console.log("args", args);
+    } catch (e) {
+      console.error("error fetching", e);
+    }
+    // Todo: function to flatten args
+    // right now, thirdweb contract args contains object which needs to be manually flattened into something like
+    const argstemp = [
+      "0x01921fde091A964b712843762C878F5C5b6cc69c",
+      1,
+      "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+      0,
+      [
+        ["0x0000000000000000000000000000000000000000000000000000000000000000"],
+        1,
+        0,
+        "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+      ],
+      [],
+    ];
+
+    // Calling a thirdweb nft drop contract
+    const { transactionHash } = await initializedUser.wallet.gasless.callContract({
+      contractAddress: ERC721_CONTRACT,
+      methodArgs: argstemp,
+      // you can grab this by finding the claim method in the thirdweb contract
+      methodInterface:
+        "function claim(address _receiver,uint256 _quantity,address _currency,  uint256 pricePerToken, tuple(bytes32[] proof, uint256 quantityLimitPerWallet, uint256 pricePerToken, address currency) calldata _allowlistProof,bytes memory _data) public payable virtual override",
+    });
+    console.log("transactionHash", transactionHash);
   };
 
   return (
@@ -205,6 +269,30 @@ export const WalletFeatures: React.FC<Props> = ({ user }) => {
               isLoading={loading === Features.CALL_GASLESS_CONTRACT}
             >
               Call contract method (Gasless)
+            </Button>
+            <Code borderRadius={8} p={4} width="full">
+              {result?.gaslessTransactionHash ? (
+                <Link
+                  isExternal
+                  textDecoration="underline"
+                  href={`https://mumbai.polygonscan.com/tx/${result.gaslessTransactionHash}`}
+                >
+                  {result.gaslessTransactionHash}
+                </Link>
+              ) : (
+                <Text color="gray.500" fontStyle="italic" size="sm">
+                  {PLACEHOLDER}
+                </Text>
+              )}
+            </Code>
+          </Stack>
+          <Stack>
+            <Button
+              onClick={mintThirdwebGasless}
+              colorScheme="blue"
+              isLoading={loading === Features.CALL_GASLESS_CONTRACT}
+            >
+              Claim contract method (Gasless)
             </Button>
             <Code borderRadius={8} p={4} width="full">
               {result?.gaslessTransactionHash ? (

@@ -32,8 +32,8 @@ function App() {
 
   useEffect(() => {
     const paper = new PaperEmbeddedWalletSdk({
-      clientId: "992d8417-9cd1-443c-bae3-f9eac1d64767",
-      chain: "Mumbai",
+      clientId: "1e74452f-6ea3-48d3-9bc0-a6e3e2cb5d20", //"992d8417-9cd1-443c-bae3-f9eac1d64767",
+      chain: "Goerli", //"Mumbai",
       // Optional: custom CSS styling properties:
       styles: {
         colorBackground: "#202020",
