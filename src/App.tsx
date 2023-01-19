@@ -72,9 +72,10 @@ function App() {
 
     if (code) {
       (async () => {
+        console.log("loginWithSocialOAuth");
         const resp = await paper?.auth.loginWithSocialOAuth({
           authProvider: AuthProvider.GOOGLE,
-          redirectUri: "https://ews-demo.withpaper.com",
+          redirectUri: "http://localhost:3000", //https://ews-demo.withpaper.com",
         });
         console.log("googleCallback response", resp);
         await fetchUserStatus();

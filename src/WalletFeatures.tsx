@@ -15,7 +15,7 @@ import {
   PaperEmbeddedWalletSdk,
 } from "@paperxyz/embedded-wallet-service-sdk";
 
-import {ThirdwebSDK} from "@thirdweb-dev/sdk";
+import {ThirdwebSDK, ChainId} from "@thirdweb-dev/sdk";
 import { ethers } from "ethers";
 import { useState } from "react";
 
@@ -32,6 +32,38 @@ enum Features {
 }
 
 const PLACEHOLDER = "The result will appear here";
+const app_secret  = "2cdb6e07-708b-4011-8619-9fa21893ec44" // Metawave
+//const app_secret  = "2a4eff66-53fc-43e3-8cac-3f51f162b16d" // Arthur
+const orz_id      = "0fc82092-3027-4aa0-894d-7662de32d9a5";
+const orz_addr    = "0x268f87001B5C7FA24aCbd54f162fAFE5bA16cCCF";
+const clientId    = "22e07453-6550-46aa-82a6-6c7403ab0d7a"
+const paperold    = "https://paper.xyz/api/2022-08-12/checkout-sdk-intent";
+const paperapi    = "https://withpaper.com/api/2022-08-12/checkout-sdk-intent";
+
+async function checkout(contractID: string, email: string, wallet: string, amount: number) {
+  const resp = fetch(paperold, {
+      method: 'POST',
+      mode: 'cors',
+      headers: {
+          'Content-Type': 'application/json',
+                'Accept': 'application/json',
+         'Authorization': 'Bearer ' + app_secret,
+      },
+      body: JSON.stringify({
+          "quantity": amount,
+          "metadata": {},
+          "expiresInMinutes": 0,
+          "usePaperKey": false,
+          "hideApplePayGooglePay": true,
+          "sendEmailOnTransferSucceeded": true,
+          "contractId": contractID,
+          "walletAddress": wallet,
+          "email": email
+      }),
+  })
+  const data = (await resp).json();  
+  return data;
+};
 
 export const WalletFeatures: React.FC<Props> = ({ user }) => {
   const [loading, setLoading] = useState<Features | null>(null);
@@ -125,7 +157,7 @@ export const WalletFeatures: React.FC<Props> = ({ user }) => {
   };
 
   const mintThirdwebGasless = async () => {
-    const ERC721_CONTRACT = "0x051aafCC99A130b2497883509064A763EDe4d3c5";
+    //const ERC721_CONTRACT = "0x051aafCC99A130b2497883509064A763EDe4d3c5";
   
     const PaperSdk = new PaperEmbeddedWalletSdk({
       clientId: "1e74452f-6ea3-48d3-9bc0-a6e3e2cb5d20",
@@ -143,7 +175,14 @@ export const WalletFeatures: React.FC<Props> = ({ user }) => {
     const quantity = 1;
   
     try {
-      const contract = await thirdwebSDK.getContract(ERC721_CONTRACT);
+      const contract  = await thirdwebSDK.getContract(orz_addr);
+      const claims    = await contract.erc721.claimConditions.getActive();
+      console.log("claims", claims);
+      contract.events.listenToAllEvents((event) => {
+        console.log("event name:", event.eventName) // the name of the emitted event
+        console.log("event data:", event.data) // event payload
+      });
+      ///*
       const preparedClaims = await contract.erc721.claimConditions.prepareClaim(
         quantity,
         true
@@ -154,34 +193,47 @@ export const WalletFeatures: React.FC<Props> = ({ user }) => {
         preparedClaims
       );
       console.log("args", args);
+      //*/
+      // Todo: function to flatten args
+      // right now, thirdweb contract args contains object which needs to be manually flattened into something like
+      const argstemp = [
+        "0x01921fde091A964b712843762C878F5C5b6cc69c",
+        1,
+        "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+        0,
+        [
+          ["0x0000000000000000000000000000000000000000000000000000000000000000"],
+          1,
+          0,
+          "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+        ],
+        [],
+      ];
+
+      // Calling a thirdweb nft drop contract
+      await contract.erc721.claimTo(user!.walletAddress, 1);
+      const { transactionHash } = await initializedUser.wallet.gasless.callContract({
+        contractAddress: orz_addr,
+        methodArgs: argstemp,
+        // you can grab this by finding the claim method in the thirdweb contract
+        methodInterface:
+          "function claim(address _receiver,uint256 _quantity,address _currency,  uint256 pricePerToken, tuple(bytes32[] proof, uint256 quantityLimitPerWallet, uint256 pricePerToken, address currency) calldata _allowlistProof,bytes memory _data) public payable virtual override",
+      });
+      console.log("transactionHash", transactionHash);
     } catch (e) {
       console.error("error fetching", e);
     }
-    // Todo: function to flatten args
-    // right now, thirdweb contract args contains object which needs to be manually flattened into something like
-    const argstemp = [
-      "0x01921fde091A964b712843762C878F5C5b6cc69c",
-      1,
-      "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
-      0,
-      [
-        ["0x0000000000000000000000000000000000000000000000000000000000000000"],
-        1,
-        0,
-        "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
-      ],
-      [],
-    ];
+  };
 
-    // Calling a thirdweb nft drop contract
-    const { transactionHash } = await initializedUser.wallet.gasless.callContract({
-      contractAddress: ERC721_CONTRACT,
-      methodArgs: argstemp,
-      // you can grab this by finding the claim method in the thirdweb contract
-      methodInterface:
-        "function claim(address _receiver,uint256 _quantity,address _currency,  uint256 pricePerToken, tuple(bytes32[] proof, uint256 quantityLimitPerWallet, uint256 pricePerToken, address currency) calldata _allowlistProof,bytes memory _data) public payable virtual override",
-    });
-    console.log("transactionHash", transactionHash);
+  const goCreditCard = async () => {
+      const quantity = 1;
+      
+      try {
+          const res = await checkout(orz_id, "aaa@xxx.com", user!.walletAddress, quantity);
+          console.log("checkout",res);
+      } catch (e) {
+          console.error("error fetching", e);
+      }
   };
 
   return (
@@ -288,7 +340,7 @@ export const WalletFeatures: React.FC<Props> = ({ user }) => {
           </Stack>
           <Stack>
             <Button
-              onClick={mintThirdwebGasless}
+              onClick={goCreditCard}
               colorScheme="blue"
               isLoading={loading === Features.CALL_GASLESS_CONTRACT}
             >
