@@ -12,10 +12,10 @@ import {
 import {
   ContractCallInputType,
   InitializedUser,
-  PaperEmbeddedWalletSdk,
+  //PaperEmbeddedWalletSdk,
 } from "@paperxyz/embedded-wallet-service-sdk";
 
-import {ThirdwebSDK, ChainId} from "@thirdweb-dev/sdk";
+//import {ThirdwebSDK} from "@thirdweb-dev/sdk";
 import { ethers } from "ethers";
 import { useState } from "react";
 
@@ -35,10 +35,10 @@ const PLACEHOLDER = "The result will appear here";
 const app_secret  = "2cdb6e07-708b-4011-8619-9fa21893ec44" // Metawave
 //const app_secret  = "2a4eff66-53fc-43e3-8cac-3f51f162b16d" // Arthur
 const orz_id      = "0fc82092-3027-4aa0-894d-7662de32d9a5";
-const orz_addr    = "0x268f87001B5C7FA24aCbd54f162fAFE5bA16cCCF";
-const clientId    = "22e07453-6550-46aa-82a6-6c7403ab0d7a"
+//const orz_addr    = "0x268f87001B5C7FA24aCbd54f162fAFE5bA16cCCF";
+//const clientId    = "22e07453-6550-46aa-82a6-6c7403ab0d7a"
 const paperold    = "https://paper.xyz/api/2022-08-12/checkout-sdk-intent";
-const paperapi    = "https://withpaper.com/api/2022-08-12/checkout-sdk-intent";
+//const paperapi    = "https://withpaper.com/api/2022-08-12/checkout-sdk-intent";
 
 async function checkout(contractID: string, email: string, wallet: string, amount: number) {
   const resp = fetch(paperold, {
@@ -155,7 +155,7 @@ export const WalletFeatures: React.FC<Props> = ({ user }) => {
       setLoading(null);
     }
   };
-
+/*
   const mintThirdwebGasless = async () => {
     //const ERC721_CONTRACT = "0x051aafCC99A130b2497883509064A763EDe4d3c5";
   
@@ -182,7 +182,7 @@ export const WalletFeatures: React.FC<Props> = ({ user }) => {
         console.log("event name:", event.eventName) // the name of the emitted event
         console.log("event data:", event.data) // event payload
       });
-      ///*
+      
       const preparedClaims = await contract.erc721.claimConditions.prepareClaim(
         quantity,
         true
@@ -193,7 +193,7 @@ export const WalletFeatures: React.FC<Props> = ({ user }) => {
         preparedClaims
       );
       console.log("args", args);
-      //*/
+      
       // Todo: function to flatten args
       // right now, thirdweb contract args contains object which needs to be manually flattened into something like
       const argstemp = [
@@ -224,7 +224,7 @@ export const WalletFeatures: React.FC<Props> = ({ user }) => {
       console.error("error fetching", e);
     }
   };
-
+*/
   const goCreditCard = async () => {
       const quantity = 1;
       
