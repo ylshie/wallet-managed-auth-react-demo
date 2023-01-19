@@ -24,7 +24,7 @@ export const Login: React.FC<Props> = ({ paper, onLoginSuccess }) => {
   const loginWithGoogle = async () => {
     const res = await paper?.auth.initializeSocialOAuth({
                         authProvider: AuthProvider.GOOGLE,
-                        redirectUri: "http://localhost:3000", //https://ews-demo.withpaper.com",
+                        redirectUri: "https://ews-demo.netlify.app", //http://localhost:3000", //https://ews-demo.withpaper.com",
                       });
     console.log("initializeSocialOAuth", res);
   };

@@ -75,7 +75,7 @@ function App() {
         console.log("loginWithSocialOAuth");
         const resp = await paper?.auth.loginWithSocialOAuth({
           authProvider: AuthProvider.GOOGLE,
-          redirectUri: "http://localhost:3000", //https://ews-demo.withpaper.com",
+          redirectUri: "https://ews-demo.netlify.app", // http://localhost:3000", //https://ews-demo.withpaper.com",
         });
         console.log("googleCallback response", resp);
         await fetchUserStatus();
